@@ -7,25 +7,11 @@ class TodoList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      builder: (context, child) {
-        final listController = context.read<TodoListController>();
-        return Scaffold(
-          appBar: AppBar(
-            title: Text("TODOリスト"),
-          ),
-          body: Column(
-            children: [
-              _Form(),
-              Expanded(
-                child: StreamBuilder<List<Todo>>(
-                  stream: listController.list,
-                  builder: (context, snapshot) => _list(snapshot.data ?? []),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+      child: Scaffold(
+        appBar: AppBar(title: Text("TODOリスト")),
+        body: _Body(),
+      ),
+      // ここで生成されたインスタンスが子Widgetで利用可能になる
       providers: [
         Provider<TodoListController>(
           create: (_) => TodoListController(),
@@ -40,52 +26,96 @@ class TodoList extends StatelessWidget {
   }
 }
 
-class _Form extends StatelessWidget {
+class _Body extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final listController = context.read<TodoListController>();
-    final formController = context.read<TodoFormController>();
+    return Column(
+      children: [
+        _Form(),
+        Expanded(
+          child: StreamBuilder<List<Todo>>(
+            stream: listController.list,
+            builder: (context, snapshot) => _list(snapshot.data ?? []),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Form extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // FormのKeyを作成
     final key = GlobalKey<FormState>();
+
+    // 親WidgetであるMultiProviderで生成されたインスタンスを読み取る
+    final listController = context.read<TodoListController>();
+    final formController = context.read<TodoFormController>();
+
     return Form(
       key: key,
       child: Column(
         children: [
           TextFormField(
-            initialValue: null,
             onSaved: formController.changeTitle,
+            decoration: InputDecoration(labelText: "タイトル"),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return "タイトルは必須です";
+              }
+            },
           ),
           TextFormField(
-            initialValue: null,
             onSaved: formController.changeContent,
+            decoration: InputDecoration(labelText: "内容"),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return "内容は必須です";
+              }
+            },
           ),
           FormField<DateTime>(
-            initialValue: null,
             onSaved: formController.changeDueTo,
-            builder: (state) => ElevatedButton(
-              child: Text(state.value?.toString() ?? "締切日を選択"),
-              onPressed: () async {
-                final selected = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime.now(),
-                );
-                state.didChange(selected);
-              },
+            builder: (state) => Row(
+              children: [
+                Text(state.value?.toString() ?? "締切日を選択"),
+                IconButton(
+                  onPressed: () => _selectDueTo(context, state),
+                  icon: Icon(Icons.calendar_today),
+                ),
+              ],
             ),
           ),
           ElevatedButton(
             onPressed: () {
               final state = key.currentState;
-              state?.save();
+              if (state == null) throw NullThrownError();
+              // 入力チェック
+              if (!state.validate()) return;
+              // Formの入力内容を保存
+              state.save();
+              // Formの内容を一覧に追加
               listController.addTodo(formController.todo);
-              state?.reset();
+              // Fromの内容を初期化
+              state.reset();
             },
             child: Text("投稿"),
           )
         ],
       ),
     );
+  }
+
+  _selectDueTo(BuildContext context, FormFieldState<DateTime> state) async {
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now(),
+    );
+    state.didChange(selected);
   }
 }
 
