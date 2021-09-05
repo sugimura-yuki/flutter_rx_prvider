@@ -58,6 +58,7 @@ class _Form extends StatelessWidget {
       key: key,
       child: Column(
         children: [
+          // タイトル入力欄
           TextFormField(
             onSaved: formController.changeTitle,
             decoration: InputDecoration(labelText: "タイトル"),
@@ -67,6 +68,7 @@ class _Form extends StatelessWidget {
               }
             },
           ),
+          // 内容入力欄
           TextFormField(
             onSaved: formController.changeContent,
             decoration: InputDecoration(labelText: "内容"),
@@ -76,6 +78,7 @@ class _Form extends StatelessWidget {
               }
             },
           ),
+          // 締切日選択
           FormField<DateTime>(
             onSaved: formController.changeDueTo,
             builder: (state) => Row(
@@ -88,16 +91,22 @@ class _Form extends StatelessWidget {
               ],
             ),
           ),
+          // 投稿ボタン
           ElevatedButton(
             onPressed: () {
               final state = key.currentState;
               if (state == null) throw NullThrownError();
+
               // 入力チェック
               if (!state.validate()) return;
+
               // Formの入力内容を保存
               state.save();
+
               // Formの内容を一覧に追加
-              listController.addTodo(formController.todo);
+              final todo = formController.todo;
+              listController.addTodo(todo);
+
               // Fromの内容を初期化
               state.reset();
             },

@@ -2,14 +2,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:rxdart/rxdart.dart';
 
 class TodoListController {
-  final _list = BehaviorSubject<List<Todo>>.seeded([Todo(title: "初期値",content: "こんてんと")]);
+  final _list = BehaviorSubject<List<Todo>>.seeded([
+    Todo(title: "初期値", content: "こんてんと"),
+  ]);
 
   Stream<List<Todo>> get list => _list.stream;
 
   addTodo(Todo todo) {
-    final list = _list.value;
-    list.add(todo);
-    _list.add(list);
+    final value = _list.value;
+    value.add(todo);
+    _list.value = value;
   }
 
   dispose() {
