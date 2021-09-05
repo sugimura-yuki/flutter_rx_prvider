@@ -8,8 +8,7 @@ class TodoList extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       builder: (context, child) {
-        final listController =
-            Provider.of<TodoListController>(context, listen: false);
+        final listController = context.read<TodoListController>();
         return Scaffold(
           appBar: AppBar(
             title: Text("TODOリスト"),
@@ -20,7 +19,7 @@ class TodoList extends StatelessWidget {
               Expanded(
                 child: StreamBuilder<List<Todo>>(
                   stream: listController.list,
-                  builder: (context, snapshot) => _List(snapshot.data ?? []),
+                  builder: (context, snapshot) => _list(snapshot.data ?? []),
                 ),
               ),
             ],
@@ -44,10 +43,8 @@ class TodoList extends StatelessWidget {
 class _Form extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final listController =
-        Provider.of<TodoListController>(context, listen: false);
-    final formController =
-        Provider.of<TodoFormController>(context, listen: false);
+    final listController = context.read<TodoListController>();
+    final formController = context.read<TodoFormController>();
     final key = GlobalKey<FormState>();
     return Form(
       key: key,
@@ -92,31 +89,21 @@ class _Form extends StatelessWidget {
   }
 }
 
-class _List extends StatelessWidget {
-  final List<Todo> _todoList;
-  _List(this._todoList);
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: _todoList.length,
-      itemBuilder: (context, idx) => _Detail(_todoList[idx]),
-    );
-  }
+_list(List<Todo> list) {
+  return ListView.builder(
+    itemCount: list.length,
+    itemBuilder: (context, idx) => _detail(list[idx]),
+  );
 }
 
-class _Detail extends StatelessWidget {
-  final Todo _todo;
-  _Detail(this._todo);
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Column(
-        children: [
-          Text(_todo.title),
-          Text(_todo.content),
-          Text(_todo.dueTo?.toString() ?? ""),
-        ],
-      ),
-    );
-  }
+_detail(Todo todo) {
+  return Card(
+    child: Column(
+      children: [
+        Text(todo.title),
+        Text(todo.content),
+        Text(todo.dueTo?.toString() ?? ""),
+      ],
+    ),
+  );
 }
